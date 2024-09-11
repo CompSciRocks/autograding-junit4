@@ -35,6 +35,13 @@ jobs:
         run: |
           git tag -f latest # Since we are already on main we don't need a ref. This will tag HEAD of main.
           git push origin latest --force
+      - name: Release main branch
+        id: create_release_main
+        uses: ncipollo/release-action@v1
+        with:
+          tag: latest
+          allowUpdates: true
+      
       # - name: Tag and push v1
       #   run: |
       #     git tag -f v1 # Since we are already on releases/v1 we don't need a ref. This will tag HEAD of releases/v1.
