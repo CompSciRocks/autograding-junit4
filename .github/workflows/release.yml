@@ -24,63 +24,45 @@ jobs:
           npm run build
           git add dist/
           git commit -m "Releasing" --allow-empty
-          git tag -a releases/${{ env.CI_REF_NAME }} -m "Releasing ${{ env.CI_REF_NAME }}"
-          git push -f origin tag releases/${{ env.CI_REF_NAME }}
+          git push -f origin ${{ env.CI_REF_NAME }}
       - name: Get version
         id: project-version
         uses: "euberdeveloper/ga-project-version@main"
         with:
           package-manager: npm
-      - name: Tag latest
-        # Only want to tag latest if this push was to main branch
-        if: env.CI_REF_NAME == 'main'
-        run: |
-          git tag -f latest # Since we are already on main we don't need a ref. This will tag HEAD of main.
-          git push origin latest --force
-      - name: Release main branch
-        if: env.CI_REF_NAME == 'main'
-        id: create_release_main
-        uses: ncipollo/release-action@v1
-        with:
-          tag: latest
-          allowUpdates: true
-      
-      
-      - name: Tag non-main branch
-        # Branch, but also have to make sure it's not a tag
-        if: env.CI_REF_NAME != 'main' && startsWith(env.CI_REF, 'refs/heads')
-        run: |
-          git tag -f ${{ env.CI_REF_NAME }} # Since we are already on the branch we don't need a ref. This will tag HEAD of the branch.
-          git push origin tag ${{ env.CI_REF_NAME }} --force
-      
-      - name: Release non-main branch
-        if: env.CI_REF_NAME != 'main'
+      - name: Create release
         run: |
           gh release delete ${{ env.CI_REF_NAME }} -y
           gh release create ${{ env.CI_REF_NAME }} -t ${{ env.CI_REF_NAME }} -n "Release ${{ env.CI_REF_NAME }}"
         env:
           GH_TOKEN: ${{ github.token }}
-
-      # - name: Release non-main branch
-      #   # Branch, already been tagged
-      #   if: env.CI_REF_NAME != 'main'
-      #   id: create_release
+      # - name: Tag latest
+      #   # Only want to tag latest if this push was to main branch
+      #   if: env.CI_REF_NAME == 'main'
+      #   run: |
+      #     git tag -f latest # Since we are already on main we don't need a ref. This will tag HEAD of main.
+      #     git push origin latest --force
+      # - name: Release main branch
+      #   if: env.CI_REF_NAME == 'main'
+      #   id: create_release_main
       #   uses: ncipollo/release-action@v1
       #   with:
-      #     tag: ${{ env.CI_REF_NAME }}
-      #     allowUpdates: true  
-      
-      # - name: Delete build tag
-      #   run: |
-      #     git tag -d release/${{ env.CI_REF_NAME }}
-      #     git push origin :refs/tags/release/${{ env.CI_REF_NAME }}
-      # - name: Tag and push v1
-      #   run: |
-      #     git tag -f v1 # Since we are already on releases/v1 we don't need a ref. This will tag HEAD of releases/v1.
-      #     git push origin v1 --force
-      # - name: Create Release
-      #   id: create_release
-      #   uses: ncipollo/release-action@v1
-      #   with:
-      #     tag: v1
+      #     tag: latest
       #     allowUpdates: true
+      
+      
+      # - name: Tag non-main branch
+      #   # Branch, but also have to make sure it's not a tag
+      #   if: env.CI_REF_NAME != 'main' && startsWith(env.CI_REF, 'refs/heads')
+      #   run: |
+      #     git tag -f ${{ env.CI_REF_NAME }} # Since we are already on the branch we don't need a ref. This will tag HEAD of the branch.
+      #     git push origin tag ${{ env.CI_REF_NAME }} --force
+      
+      # - name: Release non-main branch
+      #   if: env.CI_REF_NAME != 'main'
+      #   run: |
+      #     gh release delete ${{ env.CI_REF_NAME }} -y
+      #     gh release create ${{ env.CI_REF_NAME }} -t ${{ env.CI_REF_NAME }} -n "Release ${{ env.CI_REF_NAME }}"
+      #   env:
+      #     GH_TOKEN: ${{ github.token }}
+
