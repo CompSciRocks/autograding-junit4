@@ -57,6 +57,8 @@ jobs:
         if: env.CI_REF_NAME != 'main'
         run: |
           gh release create ${{ env.CI_REF_NAME }} -t ${{ env.CI_REF_NAME }} -n "Release ${{ env.CI_REF_NAME }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       # - name: Release non-main branch
       #   # Branch, already been tagged
