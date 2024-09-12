@@ -25,7 +25,7 @@ jobs:
           git add dist/
           git commit -m "Releasing"
           git tag -a ${{ env.CI_REF_NAME }} -m "Releasing ${{ env.CI_REF_NAME }}"
-          git push -f origin ${{ env.CI_REF_NAME }}
+          git push -f origin tag ${{ env.CI_REF_NAME }}
       - name: Get version
         id: project-version
         uses: "euberdeveloper/ga-project-version@main"
