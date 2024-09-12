@@ -23,7 +23,7 @@ jobs:
           npm install --silent
           npm run build
           git add dist/
-          git commit -m "Releasing" --force
+          git commit -m "Releasing" --allow-empty
           git tag -a releases/${{ env.CI_REF_NAME }} -m "Releasing ${{ env.CI_REF_NAME }}"
           git push -f origin tag releases/${{ env.CI_REF_NAME }}
       - name: Get version
