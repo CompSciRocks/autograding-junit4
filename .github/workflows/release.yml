@@ -57,7 +57,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ env.CI_REF_NAME }}
+          name: ${{ env.CI_REF_NAME }}
           allowUpdates: true  
       
       # - name: Tag and push v1
