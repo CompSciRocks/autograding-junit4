@@ -62,10 +62,10 @@ jobs:
           tag: ${{ env.CI_REF_NAME }}
           allowUpdates: true  
       
-      - name: Delete build tag
-        run: |
-          git tag -d release/${{ env.CI_REF_NAME }}
-          git push origin :refs/tags/release/${{ env.CI_REF_NAME }}
+      # - name: Delete build tag
+      #   run: |
+      #     git tag -d release/${{ env.CI_REF_NAME }}
+      #     git push origin :refs/tags/release/${{ env.CI_REF_NAME }}
       # - name: Tag and push v1
       #   run: |
       #     git tag -f v1 # Since we are already on releases/v1 we don't need a ref. This will tag HEAD of releases/v1.
