@@ -24,6 +24,7 @@ jobs:
           npm run build
           git add dist/
           git commit -m "Releasing"
+          git tag -a release/${{ env.CI_REF_NAME }} -m "Release ${{ env.CI_REF_NAME }}"
           git push -f origin release/${{ env.CI_REF_NAME }}
       - name: Get version
         id: project-version
