@@ -24,7 +24,8 @@ jobs:
           npm run build
           git add dist/
           git commit -m "Releasing"
-          git push -f origin releases/v1
+          git tag -a releases/${{ env.CI_REF_NAME }} -m "Releasing ${{ env.CI_REF_NAME }}"
+          git push -f origin releases/{{ env.CI_REF }}
       - name: Get version
         id: project-version
         uses: "euberdeveloper/ga-project-version@main"
