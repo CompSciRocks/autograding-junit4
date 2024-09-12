@@ -59,7 +59,6 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          commit: ${{ github.sha }}
           tag: ${{ env.CI_REF_NAME }}
           allowUpdates: true  
       
