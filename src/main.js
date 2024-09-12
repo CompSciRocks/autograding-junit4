@@ -40,20 +40,7 @@ function setup(inputs) {
         })
 
         if (rs.error) {
-            const result = {
-                version: 1,
-                status: 'error',
-                max_score: inputs.maxScore,
-                tests: [{
-                    name: inputs.testName || 'Unknown Test',
-                    status: 'error',
-                    message: 'Error running setup command, see ' + (inputs.testName || 'Unknown Test') + ' above for more details',
-                    test_code: `${inputs.setupCommand || 'Unknown Command'}`,
-                    filename: '',
-                    line_no: 0,
-                    execution_time: 0,
-                }],
-            }
+            let markdown = ':x: Error running setup command\n\nThis is probably something that your teacher needs to fix\n\n```shell\n' + inputs.setupCommand + '\n```\n\nError: ' + rs.error.message;
 
             console.error('❌ Error running setup command')
             console.error('This is probably something your teacher needs to fix')
@@ -66,14 +53,36 @@ function setup(inputs) {
                 console.error('stdout:')
                 console.error(rs.stdout.toString())
                 console.error()
+
+                markdown += '\n\nstdout:\n\n```\n' + rs.stdout.toString() + '\n```\n\n'
             }
 
             if (rs.stderr) {
                 console.error('stderr:')
                 console.error(rs.stderr.toString())
+
+                markdown += '\n\nstderr:\n\n```\n' + rs.stderr.toString() + '\n```\n\n'
+            }
+
+
+            const result = {
+                version: 1,
+                status: 'error',
+                max_score: inputs.maxScore,
+                markdown: btoa(markdown),
+                tests: [{
+                    name: inputs.testName || 'Unknown Test',
+                    status: 'error',
+                    message: 'Error running setup command, see ' + (inputs.testName || 'Unknown Test') + ' above for more details',
+                    test_code: `${inputs.setupCommand || 'Unknown Command'}`,
+                    filename: '',
+                    line_no: 0,
+                    execution_time: 0,
+                }],
             }
 
             core.setOutput('result', btoa(JSON.stringify(result)))
+
 
             // Tell next stop to not bother
             return false;
@@ -101,10 +110,32 @@ function build(inputs) {
         // Don't care about the output, just that it builds without an error code > 0
         return true;
     } catch (error) {
+        let markdown = ':x: Error building Java code\n\n';
+
+        console.error()
+        console.error('❌ Error building Java code')
+
+        if (error.stdout && error.stdout.length > 0) {
+            console.error();
+            console.error('Standard Output:')
+            console.error(error.stdout.toString().trim())
+
+            markdown += '```\n' + error.stdout.toString().trim() + '\n```\n\n'
+        }
+
+        if (error.stderr && error.stderr.length > 0) {
+            console.error()
+            console.error('Error Output:')
+            console.error(error.stderr.toString().trim())
+
+            markdown += '```\n' + error.stderr.toString().trim() + '\n```\n\n'
+        }
+
         const result = {
             version: 1,
             status: 'error',
             max_score: inputs.maxScore,
+            markdown: btoa(markdown),
             tests: [{
                 name: inputs.testName || 'Unknown Test',
                 status: 'error',
@@ -114,21 +145,6 @@ function build(inputs) {
                 line_no: 0,
                 execution_time: 0,
             }],
-        }
-
-        console.error()
-        console.error('❌ Error building Java code')
-
-        if (error.stdout && error.stdout.length > 0) {
-            console.error();
-            console.error('Standard Output:')
-            console.error(error.stdout.toString().trim())
-        }
-
-        if (error.stderr && error.stderr.length > 0) {
-            console.error()
-            console.error('Error Output:')
-            console.error(error.stderr.toString().trim())
         }
 
         core.setOutput('result', btoa(JSON.stringify(result)))
@@ -157,12 +173,14 @@ function run(inputs) {
 
         console.log('✅ ' + dots.length + ' test' + (dots.length > 1 ? 's' : '') + ' passed')
 
+        let markdown = '✅ ' + dots.length + ' test' + (dots.length > 1 ? 's' : '') + ' passed';
 
         // All tests passed
         const result = {
             version: 1,
             status: 'pass',
             max_score: inputs.maxScore,
+            markdown: btoa(markdown),
             tests: [
                 {
                     name: inputs.testName || 'Unknown Test',
@@ -181,10 +199,12 @@ function run(inputs) {
 
     } catch (error) {
         // Possible that some tests passed, so we'll have to parse the output and figure it out
+
         const result = {
             version: 1,
             status: 'error',
             max_score: inputs.maxScore,
+            markdown: '',
             tests: [{
                 name: inputs.testName || 'Unknown Test',
                 status: 'error',
@@ -195,6 +215,8 @@ function run(inputs) {
                 execution_time: 0,
             }],
         }
+
+        let markdown = '';
 
         let stdOut = error.stdout ? error.stdout.toString().trim() : ''
         let re = /version\s*\d+\.\d+(\.\d+)\r?\n(.*?)(\r?\n|$)/g
@@ -217,8 +239,10 @@ function run(inputs) {
         console.error()
         if (testCount === errorCount) {
             console.error('❌ All ' + testCount + ' tests failed (0 of ' + inputs.maxScore + ' points)')
+            markdown += ':x: All ' + testCount + ' tests failed (0 of ' + inputs.maxScore + ' points)\n\n'
         } else {
             console.error('❌ ' + errorCount + ' of ' + testCount + ' tests failed (' + result.tests[0].score + ' of ' + inputs.maxScore + ' points)')
+            markdown += ':x: ' + errorCount + ' of ' + testCount + ' tests failed (' + result.tests[0].score + ' of ' + inputs.maxScore + ' points)\n\n'
         }
 
         // Get the error lines for mesages
@@ -228,6 +252,8 @@ function run(inputs) {
         let table = new Table({
             head: ['Message', 'Expected', 'Actual'],
         })
+
+        let htmlTable = '<table><thead><tr><th>Message</th><th>Expected</th><th>Actual</th></tr></thead><tbody>';
 
         for (const match of stdOut.matchAll(reFailures)) {
             let msg = match[1].trim()
@@ -249,11 +275,13 @@ function run(inputs) {
 
                 if (expected != '' || actual != '') {
                     table.push([message || 'Unexpected Result', expected, actual])
+                    htmlTable += '<tr><td>' + message + '</td><td>' + expected + '</td><td>' + actual + '</td></tr>'
                 } else {
                     table.push([{
                         colSpan: 3,
                         content: msg
                     }])
+                    htmlTable += '<tr><td colspan="3">' + msg + '</td></tr>'
                 }
 
             } else {
@@ -271,8 +299,12 @@ function run(inputs) {
                     colSpan: 3,
                     content: msg  // Don't need extra info here
                 }])
+                htmlTable += '<tr><td colspan="3">' + msg + '</td></tr>'
             }
         }
+        htmlTable += '</tbody></table>';
+
+        markdown += htmlTable;
 
         console.log(table.toString())
 
@@ -280,7 +312,11 @@ function run(inputs) {
             console.error()
             console.error('Error Output:')
             console.error(error.stderr.toString().trim())
+
+            markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
         }
+
+        result.markdown = btoa(markdown);
 
         core.setOutput('result', btoa(JSON.stringify(result)))
 
