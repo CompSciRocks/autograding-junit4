@@ -69,7 +69,7 @@ function setup(inputs) {
                 version: 1,
                 status: 'error',
                 max_score: inputs.maxScore,
-                markdown: markdown,
+                markdown: btoa(markdown),
                 tests: [{
                     name: inputs.testName || 'Unknown Test',
                     status: 'error',
@@ -135,7 +135,7 @@ function build(inputs) {
             version: 1,
             status: 'error',
             max_score: inputs.maxScore,
-            markdown: markdown,
+            markdown: btoa(markdown),
             tests: [{
                 name: inputs.testName || 'Unknown Test',
                 status: 'error',
@@ -180,7 +180,7 @@ function run(inputs) {
             version: 1,
             status: 'pass',
             max_score: inputs.maxScore,
-            markdown: markdown,
+            markdown: btoa(markdown),
             tests: [
                 {
                     name: inputs.testName || 'Unknown Test',
@@ -316,7 +316,7 @@ function run(inputs) {
             markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
         }
 
-        result.markdown = markdown;
+        result.markdown = btoa(markdown);
 
         core.setOutput('result', btoa(JSON.stringify(result)))
 
