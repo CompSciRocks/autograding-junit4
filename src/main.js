@@ -204,7 +204,7 @@ function run(inputs) {
             version: 1,
             status: 'error',
             max_score: inputs.maxScore,
-            markdown: markdown,
+            markdown: '',
             tests: [{
                 name: inputs.testName || 'Unknown Test',
                 status: 'error',
