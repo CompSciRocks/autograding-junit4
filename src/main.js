@@ -200,6 +200,22 @@ function run(inputs) {
     } catch (error) {
         // Possible that some tests passed, so we'll have to parse the output and figure it out
 
+        const result = {
+            version: 1,
+            status: 'error',
+            max_score: inputs.maxScore,
+            markdown: markdown,
+            tests: [{
+                name: inputs.testName || 'Unknown Test',
+                status: 'error',
+                message: 'Error running tests, see ' + (inputs.testName || 'Unknown Test') + ' above for more details',
+                test_code: `${inputs.runCommand || 'Unknown Command'}`,
+                filename: '',
+                line_no: 0,
+                execution_time: 0,
+            }],
+        }
+
         let markdown = '';
 
         let stdOut = error.stdout ? error.stdout.toString().trim() : ''
@@ -300,21 +316,7 @@ function run(inputs) {
             markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
         }
 
-        const result = {
-            version: 1,
-            status: 'error',
-            max_score: inputs.maxScore,
-            markdown: markdown,
-            tests: [{
-                name: inputs.testName || 'Unknown Test',
-                status: 'error',
-                message: 'Error running tests, see ' + (inputs.testName || 'Unknown Test') + ' above for more details',
-                test_code: `${inputs.runCommand || 'Unknown Command'}`,
-                filename: '',
-                line_no: 0,
-                execution_time: 0,
-            }],
-        }
+        result.markdown = markdown;
 
         core.setOutput('result', btoa(JSON.stringify(result)))
 
