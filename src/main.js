@@ -256,86 +256,70 @@ function run(inputs) {
 
         let htmlTable = '<table><thead><tr><th>Message</th><th>Expected</th><th>Actual</th></tr></thead><tbody>';
 
-        for (const match of stdOut.matchAll(reFailures)) {
-            let msg = match[1].trim()
+        let failures = stdOut.split(/^d+\).*$/m);
+        failures.shift();
 
-            let testMatch = /^(java\.lang\.AssertionError|org\.junit\.ComparisonFailure):\s*/i;
+        for (let failure of failures) {
 
-            if (msg.match(testMatch)) {
-                // It's an assertion error
-                msg = msg.replace(testMatch, '').trim()
-
-                // Get the message, expected, and actual values
-                let message = msg.replace(/expected:\s*<.*>\s*but was:\*?<.*>$/i, '').trim()
-                let expected = ''
-                let actual = ''
-                let reExpected = /expected:\s*<(.*)>\s*but was:\s*<(.*)>$/is
-                let matchExpected = reExpected.exec(msg)
-                if (matchExpected) {
-                    expected = matchExpected[1]
-                    actual = matchExpected[2]
-                }
-
-                if (expected != '' || actual != '') {
-                    table.push([message || 'Unexpected Result', expected, actual])
-                    htmlTable += '<tr><td>' + message + '</td><td>' + expected + '</td><td>' + actual + '</td></tr>'
+            if (failure.match(/expected\s*:\s*<(.*)>\s*but was\s*:\s*<(.*)>/sg)) {
+                // It was an assertation error, parse out the expected and actual values
+                let matches = failure.matchAll(/(AssertationError|ComparisonFailure):(.*)expected\s*:\s*<(.*)>\s*but was\s*:\s*<(.*)>/sg);
+                if (matches) {
+                    for (let match of matches) {
+                        table.push([match[2] || 'Test failed', match[3], match[4]])
+                        htmlTable += '<tr><td>' + (match[2] || 'Test failed') + '</td><td>' + match[3] + '</td><td>' + match[4] + '</td></tr>'
+                    }
                 } else {
+                    // Some other message, just output as-is
+                    let reReplace = [
+                        /java\.lang\.(.*):/i,
+                        /org\.junit\.runners\.model\.TestTimedOutException:/i,
+                    ]
+
+                    for (const re of reReplace) {
+                        msg = msg.replace(re, '').trim()
+                    }
+
                     table.push([{
                         colSpan: 3,
                         content: msg
-                    }])
-                    htmlTable += '<tr><td colspan="3">' + msg + '</td></tr>'
+                    }]);
+                    htmlTable += '<tr><td colspan="3">' + msg + '</td></tr>';
+
                 }
-
-            } else {
-                // It's an exception, needs to fill the table
-                let reReplace = [
-                    // /java\.lang\.(.*):/i,
-                    // /org\.junit\.runners\.model\.TestTimedOutException:/i,
-                ]
-
-                for (const re of reReplace) {
-                    msg = msg.replace(re, '').trim()
-                }
-
-                table.push([{
-                    colSpan: 3,
-                    content: msg  // Don't need extra info here
-                }])
-                htmlTable += '<tr><td colspan="3">' + msg + '</td></tr>'
             }
+
+            htmlTable += '</tbody></table>';
+
+            markdown += htmlTable;
+
+            console.log(table.toString())
+
+            if (error.stderr && error.stderr.length > 0) {
+                console.error()
+                console.error('Error Output:')
+                console.error(error.stderr.toString().trim())
+
+                markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
+            }
+
+            result.markdown = btoa(markdown);
+
+            core.setOutput('result', btoa(JSON.stringify(result)))
+
+            return false
         }
-        htmlTable += '</tbody></table>';
 
-        markdown += htmlTable;
-
-        console.log(table.toString())
-
-        if (error.stderr && error.stderr.length > 0) {
-            console.error()
-            console.error('Error Output:')
-            console.error(error.stderr.toString().trim())
-
-            markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
-        }
-
-        result.markdown = btoa(markdown);
-
-        core.setOutput('result', btoa(JSON.stringify(result)))
-
-        return false
     }
 
-}
-
-function btoa(str) {
-    return Buffer.from(str).toString('base64')
-}
-
-let inputs = getInputs()
-
-if (setup(inputs)) {
-    if (build(inputs)) {
-        run(inputs)
+    function btoa(str) {
+        return Buffer.from(str).toString('base64')
     }
-}
+
+    let inputs = getInputs()
+
+    if (setup(inputs)) {
+        if (build(inputs)) {
+            run(inputs)
+        }
+    }
