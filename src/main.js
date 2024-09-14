@@ -258,7 +258,7 @@ function run(inputs) {
         for (const match of stdOut.matchAll(reFailures)) {
             let msg = match[1].trim()
 
-            let testMatch = /^(java\.lang\.AssertionError|org\.junt\.ComparisonFailure):\s*/i;
+            let testMatch = /^(java\.lang\.AssertionError|org\.junit\.ComparisonFailure):\s*/i;
 
             if (msg.match(testMatch)) {
                 // It's an assertion error
