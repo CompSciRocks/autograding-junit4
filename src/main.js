@@ -288,38 +288,38 @@ function run(inputs) {
 
                 }
             }
+        }
+        htmlTable += '</tbody></table>';
 
-            htmlTable += '</tbody></table>';
+        markdown += htmlTable;
 
-            markdown += htmlTable;
+        console.log(table.toString())
 
-            console.log(table.toString())
+        if (error.stderr && error.stderr.length > 0) {
+            console.error()
+            console.error('Error Output:')
+            console.error(error.stderr.toString().trim())
 
-            if (error.stderr && error.stderr.length > 0) {
-                console.error()
-                console.error('Error Output:')
-                console.error(error.stderr.toString().trim())
-
-                markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
-            }
-
-            result.markdown = btoa(markdown);
-
-            core.setOutput('result', btoa(JSON.stringify(result)))
-
-            return false
+            markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
         }
 
+        result.markdown = btoa(markdown);
+
+        core.setOutput('result', btoa(JSON.stringify(result)))
+
+        return false
     }
 
-    function btoa(str) {
-        return Buffer.from(str).toString('base64')
-    }
+}
 
-    let inputs = getInputs()
+function btoa(str) {
+    return Buffer.from(str).toString('base64')
+}
 
-    if (setup(inputs)) {
-        if (build(inputs)) {
-            run(inputs)
-        }
+let inputs = getInputs()
+
+if (setup(inputs)) {
+    if (build(inputs)) {
+        run(inputs)
     }
+}
