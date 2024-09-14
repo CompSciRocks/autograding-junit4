@@ -278,6 +278,7 @@ function run(inputs) {
                 }
             } else {
                 // Some other message, just output as-is
+                let = msg = failure;
                 let reReplace = [
                     /java\.lang\.(.*):/i,
                     /org\.junit\.runners\.model\.TestTimedOutException:/i,
