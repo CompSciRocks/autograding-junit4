@@ -258,15 +258,17 @@ function run(inputs) {
         for (const match of stdOut.matchAll(reFailures)) {
             let msg = match[1].trim()
 
-            if (msg.match(/^java\.lang\.AssertionError: /i)) {
+            let testMatch = /^(java\.lang\.AssertionError|org\.junt\.ComparisonFailure):\s*/i;
+
+            if (msg.match(testMatch)) {
                 // It's an assertion error
-                msg = msg.replace(/^java\.lang\.AssertionError: /i, '').trim()
+                msg = msg.replace(testMatch, '').trim()
 
                 // Get the message, expected, and actual values
                 let message = msg.replace(/expected:\s*<.*>\s*but was:\*?<.*>$/i, '').trim()
                 let expected = ''
                 let actual = ''
-                let reExpected = /expected:\s*<(.*)>\s*but was:\s*<(.*)>$/i
+                let reExpected = /expected:\s*<(.*)>\s*but was:\s*<(.*)>$/is
                 let matchExpected = reExpected.exec(msg)
                 if (matchExpected) {
                     expected = matchExpected[1]
