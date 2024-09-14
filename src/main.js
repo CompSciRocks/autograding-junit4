@@ -278,7 +278,10 @@ function run(inputs) {
                 }
             } else {
                 // Some other message, just output as-is
-                let = msg = failure;
+
+                // Assume message is the first line of failure
+                let msg = failure.trim().split('\n')[0].trim();
+
                 let reReplace = [
                     /java\.lang\.(.*):/i,
                     /org\.junit\.runners\.model\.TestTimedOutException:/i,
