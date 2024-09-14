@@ -256,7 +256,7 @@ function run(inputs) {
 
         let htmlTable = '<table><thead><tr><th>Message</th><th>Expected</th><th>Actual</th></tr></thead><tbody>';
 
-        let failures = stdOut.split(/^d+\).*$/m);
+        let failures = stdOut.split(/^\d+\).*$/m);
         failures.shift();
 
         for (let failure of failures) {
