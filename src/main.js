@@ -270,24 +270,31 @@ function run(inputs) {
                         htmlTable += '<tr><td>' + (match[2] || 'Test failed') + '</td><td>' + match[3].trim().replace(/(?:\r\n|\r|\n)/g, '<br>') + '</td><td>' + match[4].trim().replace(/(?:\r\n|\r|\n)/g, '<br>') + '</td></tr>'
                     }
                 } else {
-                    // Some other message, just output as-is
-                    let reReplace = [
-                        /java\.lang\.(.*):/i,
-                        /org\.junit\.runners\.model\.TestTimedOutException:/i,
-                    ]
-
-                    for (const re of reReplace) {
-                        msg = msg.replace(re, '').trim()
-                    }
-
                     table.push([{
                         colSpan: 3,
-                        content: msg
+                        content: failure
                     }]);
-                    htmlTable += '<tr><td colspan="3">' + msg + '</td></tr>';
-
+                    htmlTable += '<tr><td colspan="3">' + failure + '</td></tr>';
                 }
+            } else {
+                // Some other message, just output as-is
+                let reReplace = [
+                    /java\.lang\.(.*):/i,
+                    /org\.junit\.runners\.model\.TestTimedOutException:/i,
+                ]
+
+                for (const re of reReplace) {
+                    msg = msg.replace(re, '').trim()
+                }
+
+                table.push([{
+                    colSpan: 3,
+                    content: msg
+                }]);
+                htmlTable += '<tr><td colspan="3">' + msg + '</td></tr>';
+
             }
+
         }
         htmlTable += '</tbody></table>';
 
