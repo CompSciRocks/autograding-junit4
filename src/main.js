@@ -267,7 +267,7 @@ function run(inputs) {
                 if (matches) {
                     for (let match of matches) {
                         table.push([match[2] || 'Test failed', match[3], match[4]])
-                        htmlTable += '<tr><td>' + (match[2] || 'Test failed') + '</td><td>' + match[3] + '</td><td>' + match[4] + '</td></tr>'
+                        htmlTable += '<tr><td>' + (match[2] || 'Test failed') + '</td><td>' + match[3].trim().replace(/(?:\r\n|\r|\n)/g, '<br>') + '</td><td>' + match[4].trim().replace(/(?:\r\n|\r|\n)/g, '<br>') + '</td></tr>'
                     }
                 } else {
                     // Some other message, just output as-is
