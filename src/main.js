@@ -16,7 +16,7 @@ function getInputs() {
     const setupCommand = core.getInput('setup-command')
     const timeout = parseFloat(core.getInput('timeout') || 5) * 60_000 // Minutes to milliseconds
     const maxScore = parseFloat(core.getInput('max-score') || 0)
-    const libFolder = core.getInput('lib-folder') || 'lib'
+    const libFolder = core.getInput('lib-path') || 'lib'
     const partialCredit = core.getInput('partial-credit') === 'true'
 
     const buildCommand = 'javac -cp "' + libFolder + '/*" -d . *.java'
