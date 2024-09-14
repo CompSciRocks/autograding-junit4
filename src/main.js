@@ -219,6 +219,7 @@ function run(inputs) {
         let markdown = '';
 
         let stdOut = error.stdout ? error.stdout.toString().trim() : ''
+        console.log(stdOut);
         let re = /version\s*\d+\.\d+(\.\d+)\r?\n(.*?)(\r?\n|$)/g
         let match = re.exec(stdOut)
         let dots = match[2] || ''
