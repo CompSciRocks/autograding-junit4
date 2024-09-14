@@ -289,8 +289,8 @@ function run(inputs) {
             } else {
                 // It's an exception, needs to fill the table
                 let reReplace = [
-                    /java\.lang\.(.*):/i,
-                    /org\.junit\.runners\.model\.TestTimedOutException:/i,
+                    // /java\.lang\.(.*):/i,
+                    // /org\.junit\.runners\.model\.TestTimedOutException:/i,
                 ]
 
                 for (const re of reReplace) {
