@@ -257,14 +257,13 @@ function run(inputs) {
         let htmlTable = '<table><thead><tr><th>Message</th><th>Expected</th><th>Actual</th></tr></thead><tbody>';
 
         let failures = stdOut.split(/^\d+\).*$/m);
-        console.log(failures);
         failures.shift();
 
         for (let failure of failures) {
 
             if (failure.match(/expected\s*:\s*<(.*)>\s*but was\s*:\s*<(.*)>/g)) {
                 // It was an assertation error, parse out the expected and actual values
-                let matches = failure.matchAll(/(AssertationError|ComparisonFailure):(.*)expected\s*:\s*<(.*)>\s*but was\s*:\s*<(.*)>/g);
+                let matches = failure.matchAll(/(AssertionError|ComparisonFailure):(.*)expected\s*:\s*<(.*)>\s*but was\s*:\s*<(.*)>/g);
                 if (matches) {
                     for (let match of matches) {
                         table.push([match[2] || 'Test failed', match[3], match[4]])
