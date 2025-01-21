@@ -280,7 +280,7 @@ function run(inputs) {
 
             // Get rid of everything except the message
             let reReplace = [
-                /java\.lang\.(.*):/i,
+                /java\.lang\.(.*?):/i,
                 /org\.junit\.runners\.model\.TestTimedOutException:/i,
                 /^\t+at(.*)$/gm, // tabbed in locations of error stack
                 /^\t+\.\.\.(.*)$/gm, // tabbed in "trimmed" message
