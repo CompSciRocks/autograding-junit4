@@ -12,17 +12,35 @@ const env = {
 
 function getInputs() {
     const testName = core.getInput('test-name', { required: true })
-    const testClasses = core.getInput('test-class', { required: true }).split('\s*,\s*  ')
+    const testClasses = core.getInput('test-class', { required: true }).split(/\s*,\s*/)
     const setupCommand = core.getInput('setup-command')
     const timeout = parseFloat(core.getInput('timeout') || 5) * 60_000 // Minutes to milliseconds
     const maxScore = parseFloat(core.getInput('max-score') || 0)
     const libFolder = core.getInput('lib-path') || 'lib'
     const partialCredit = core.getInput('partial-credit') === 'true'
+    const buildList = core.getInput('build');
+    const stackTrace = core.getInput('stacktrace') === 'true';
 
-    const buildCommand = 'javac -cp "' + libFolder + '/*" -d . *.java'
+    let buildFiles = '';
+    if (buildList == "" || buildList == "*") {
+        buildFiles = '*.java'
+    } else {
+        buildFiles = buildList.split(/\s*,\s*/);
+
+        buildFiles = buildFiles.map((file) => {
+            if (!file.match(/\.java?$/i)) {
+                return file + '.java';
+            }
+            return file;
+        });
+        buildFiles = buildFiles.join(' ');
+    }
+
+
+    const buildCommand = 'javac -cp "' + libFolder + '/*" -d . ' + buildFiles;
     const runCommand = 'java -cp "' + libFolder + '/*:." org.junit.runner.JUnitCore ' + testClasses.join(' ')
 
-    return { testName, testClasses, setupCommand, timeout, maxScore, libFolder, partialCredit, buildCommand, runCommand }
+    return { testName, testClasses, setupCommand, timeout, maxScore, libFolder, partialCredit, buildCommand, runCommand, stackTrace }
 }
 
 
@@ -261,14 +279,29 @@ function run(inputs) {
 
         for (let failure of failures) {
 
+            // Get rid of everything except the message
+            let reReplace = [
+                /java\.lang\.(.*?):/i,
+                /org\.junit\.runners\.model\.TestTimedOutException:/i,
+                /^\t+at(.*)$/gm, // tabbed in locations of error stack
+                /^\t+\.\.\.(.*)$/gm, // tabbed in "trimmed" message
+                /^Caused by: (.*)$/gm, // Caused by message, seems to only show up in assertArrayEquals
+                /^FAILURES(.*)$/gm, // FAILURES message
+                /^Tests run:(.*)$/gm, // Tests run message
+            ];
+
+            for (const re of reReplace) {
+                failure = failure.replace(re, '').trim();
+            }
+
             if (failure.match(/expected\s*:\s*<(.*)>\s*but was\s*:\s*<(.*)>/g)) {
-                // It was an assertation error, parse out the expected and actual values
-                let matches = failure.matchAll(/(AssertionError|ComparisonFailure):(.*)expected\s*:\s*<(.*)>\s*but was\s*:\s*<(.*)>/g);
+                // expected and actual are there, use them
+                let matches = failure.matchAll(/(.*)expected\s*:\s*<(.*)>\s*but was\s*:\s*<(.*)>/g);
                 if (matches) {
                     for (let match of matches) {
-                        match[2] = match[2].trim() || ''
-                        table.push([match[2] || 'Test failed', match[3], match[4]])
-                        htmlTable += '<tr><td>' + (match[2] || 'Test failed') + '</td><td>' + match[3].trim().replace(/(?:\r\n|\r|\n)/g, '<br>') + '</td><td>' + match[4].trim().replace(/(?:\r\n|\r|\n)/g, '<br>') + '</td></tr>'
+                        match[1] = match[1].trim() || ''
+                        table.push([match[1] || 'Test failed', match[2], match[2]])
+                        htmlTable += '<tr><td>' + (match[1] || 'Test failed') + '</td><td>' + match[2].trim().replace(/(?:\r\n|\r|\n)/g, '<br>') + '</td><td>' + match[3].trim().replace(/(?:\r\n|\r|\n)/g, '<br>') + '</td></tr>'
                     }
                 } else {
                     table.push([{
@@ -279,24 +312,11 @@ function run(inputs) {
                 }
             } else {
                 // Some other message, just output as-is
-
-                // Assume message is the first line of failure
-                let msg = failure.trim().split('\n')[0].trim();
-
-                let reReplace = [
-                    /java\.lang\.(.*):/i,
-                    /org\.junit\.runners\.model\.TestTimedOutException:/i,
-                ]
-
-                for (const re of reReplace) {
-                    msg = msg.replace(re, '').trim()
-                }
-
                 table.push([{
                     colSpan: 3,
-                    content: msg
+                    content: failure,
                 }]);
-                htmlTable += '<tr><td colspan="3">' + msg + '</td></tr>';
+                htmlTable += '<tr><td colspan="3">' + failure + '</td></tr>';
 
             }
 
@@ -313,6 +333,10 @@ function run(inputs) {
             console.error(error.stderr.toString().trim())
 
             markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
+        }
+
+        if (inputs.stackTrace) {
+            markdown += '<details><summary>View full stack trace</summary>\n\n```\n' + stdOut.trim() + '\n```\n\n</details>'
         }
 
         result.markdown = btoa(markdown);
