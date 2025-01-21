@@ -19,6 +19,7 @@ function getInputs() {
     const libFolder = core.getInput('lib-path') || 'lib'
     const partialCredit = core.getInput('partial-credit') === 'true'
     const buildList = core.getInput('build');
+    const stackTrace = core.getInput('stacktrace') === 'true';
 
     let buildFiles = '';
     if (buildList == "" || buildList == "*") {
@@ -39,7 +40,7 @@ function getInputs() {
     const buildCommand = 'javac -cp "' + libFolder + '/*" -d . ' + buildFiles;
     const runCommand = 'java -cp "' + libFolder + '/*:." org.junit.runner.JUnitCore ' + testClasses.join(' ')
 
-    return { testName, testClasses, setupCommand, timeout, maxScore, libFolder, partialCredit, buildCommand, runCommand }
+    return { testName, testClasses, setupCommand, timeout, maxScore, libFolder, partialCredit, buildCommand, runCommand, stackTrace }
 }
 
 
@@ -332,6 +333,10 @@ function run(inputs) {
             console.error(error.stderr.toString().trim())
 
             markdown += '\n\nError Output:\n\n```\n' + error.stderr.toString().trim() + '\n```\n\n'
+        }
+
+        if (inputs.stackTrace) {
+            markdown += '<details><summary>View full stack trace</summary>\n\n```\n' + stdOut.trim() + '\n```\n\n</details>'
         }
 
         result.markdown = btoa(markdown);

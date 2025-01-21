@@ -32,6 +32,10 @@ inputs:
     description: "If true, students will receive partial credit for passing some tests"
     required: false
     default: "false"
+  stacktrace:
+    description: "Include the JUnit stack trace in a collapsible section in the feedback"
+    required: false
+    default: "true"
 
 outputs:
   result:
