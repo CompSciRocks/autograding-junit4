@@ -12,6 +12,10 @@ inputs:
   test-class:
     description: "Name of the test class, comma separated if multiple"
     required: true
+  build:
+    description: "Comma separate list of files to build, or all if not specified"
+    default: ""
+    required: false
   timeout:
     description: "Time in minutes to wait for the test to complete"
     required: false
